@@ -26,11 +26,7 @@ import fitz
 import os
 from io import StringIO
 
-disclaimer = """**Disclaimer:** This is a tool to assist education regarding artificial intelligence. Your use of this tool accepts the following:   
-1. This tool does not generate validated medical content. \n 
-2. This tool is not a real doctor. \n    
-3. You will not take any medical action based on the output of this tool. \n   
-"""
+
 
 st.set_page_config(page_title='PubMed Researcher', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 st.title("PubMed Researcher")
@@ -41,7 +37,7 @@ with st.expander('About PubMed Researcher - Important Disclaimer'):
     st.write("Author: David Liebovitz, MD, Northwestern University")
     st.info(disclaimer)
     st.session_state.temp = st.slider("Select temperature (Higher values more creative but tangential and more error prone)", 0.0, 1.0, 0.5, 0.01)
-    st.write("Last updated 9/9/23")
+    st.write("Last updated 6/20/24")
 
 def check_password():
     """Returns `True` if the user had the correct password."""

@@ -21,3 +21,9 @@ search_term_system_prompt= """You are tasked with converting user questions into
 (Intermittent fasting OR Fasting[MeSH]) AND (Weight loss OR Weight Reduction Programs[MeSH]) AND (Adults OR Middle Aged[MeSH]) AND Age 50+
 
 """
+
+disclaimer = """**Disclaimer:** This is a tool to assist education regarding artificial intelligence. Your use of this tool accepts the following:   
+1. This tool does not generate validated medical content. \n 
+2. This tool is not a real doctor. \n    
+3. You will not take any medical action based on the output of this tool. \n   
+"""
