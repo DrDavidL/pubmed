@@ -7,6 +7,11 @@ import json
 import markdown2
 from bs4 import BeautifulSoup
 from fpdf import FPDF
+import mdpdf
+
+import subprocess
+import tempfile
+import os
 
 st.set_page_config(page_title='PubMed Researcher', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'auto')
 st.title("PubMed Researcher")
@@ -49,6 +54,19 @@ class PDF(FPDF):
             else:
                 line = f"• {item}"
             self.cell(0, 10, line.encode('latin-1', 'replace').decode('latin-1'), 0, 1)
+            
+# Function to convert markdown to PDF
+def convert_md_to_pdf(markdown_content, output_pdf_path):
+    # Create a temporary markdown file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as tmp_md:
+        tmp_md.write(markdown_content.encode('utf-8'))
+        tmp_md_path = tmp_md.name
+
+    # Convert markdown to PDF using mdpdf
+    subprocess.run(["mdpdf", "-o", output_pdf_path, tmp_md_path], check=True)
+    
+    # Clean up temporary markdown file
+    os.remove(tmp_md_path)
 
 def html_to_pdf(html_content, name):
     # Use BeautifulSoup to parse the HTML
@@ -286,7 +304,7 @@ if st.button("Convert to PubMed Search Terms"):
         {'role': 'user', 'content': original_question}]
     search_terms = create_chat_completion(messages_search_terms)      
     with st.popover("Search performed"):                      
-        st.write(f'Here are your search terms: \n\n {search_terms.choices[0].message.content}')     
+        st.write(f'Search terms: \n\n {search_terms.choices[0].message.content}')     
         st.write(f'Type of search: {search_type}')
         st.write(f'Number of results: {number_of_results}') 
                                     
@@ -302,17 +320,22 @@ if st.button("Convert to PubMed Search Terms"):
 
 
     articles_markdown = ""
+    i = 1
     for article, abstract in zip(st.session_state.articles, st.session_state.abstracts):
         with st.expander(f"**{article['title']}** ({article['year']})"):
             st.write(f"{article['title']} ({article['year']})")
             st.write(abstract)
             st.write(f"Link: [{article['link']}]({article['link']})")
             st.write("----")
-            articles_markdown += f"{article['title']} ({article['year']})\n\n{abstract}\n\nLink: [{article['link']}]({article['link']})\n\n----\n\n"
+            articles_markdown += f"**{article['title']}** ({article['year']})\n\n{abstract}\n\nLink: [{article['link']}]({article['link']})\n\n----\n\n"
+            i += 1
+    
     
     st.session_state.articles_markdown = articles_markdown
+    
 if st.session_state.articles_markdown != "":
-
+    st.write("Here are the abstracts:" + str(st.session_state.abstracts))
+    st.markdown(st.session_state.articles_markdown)
     articles_html = markdown2.markdown(st.session_state.articles_markdown, extras=["tables"])
         # st.download_button('Download HTML Case file', html, f'case.html', 'text/html')
         
@@ -321,3 +344,14 @@ if st.session_state.articles_markdown != "":
         html_to_pdf(f"<h1>PubMed Search</h1> <h2>Search: {st.session_state.search_terms} </h2> \n\n {articles_html}", 'article_list.pdf')
         with open("article_list.pdf", "rb") as f:
             st.download_button("Article List PDF", f, "article_list.pdf")
+    if st.checkbox("Direct from Markdown"):        
+        with st.spinner("Generating PDF..."):
+        # Temporary output PDF file
+            output_pdf_path = os.path.join(tempfile.gettempdir(), "output.pdf")
+            
+            # Convert markdown to PDF
+            convert_md_to_pdf(st.session_state.articles_markdown, output_pdf_path)
+            
+            # Display success message and provide download link
+            st.success("PDF generated successfully!")
+            st.download_button(label="Download PDF", data=open(output_pdf_path, "rb"), file_name="output.pdf", mime="application/pdf")
